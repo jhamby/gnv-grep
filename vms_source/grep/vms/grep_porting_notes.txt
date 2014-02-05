@@ -1,0 +1,110 @@
+src_root1:[grep]configure. is different from SRC_ROOT:[grep]configure.;1
+
+************
+File SRC_ROOT:[grep]configure.;1
+   75
+   76   # The user is always right.
+******
+File SRC_ROOT1:[grep]configure.;1
+   75   as_echo='echo'
+   76   as_echo_n='echo -n'
+   77   # The user is always right.
+************
+
+src_root1:[grep.lib]atexit.c is different from SRC_ROOT:[grep.lib]atexit.c;1
+
+LION> diff src_root:[grep.lib]atexit.c src_root1:
+************
+File SRC_ROOT:[grep.lib]atexit.c;1
+    9     /* If the system doesn't provide a definition for atexit, use on_exit
+******
+File SRC_ROOT1:[grep.lib]atexit.c;1
+    9   #ifndef VMS
+   10     /* If the system doesn't provide a definition for atexit, use on_exit
+************
+************
+File SRC_ROOT:[grep.lib]atexit.c;1
+   12     return 0;
+******
+File SRC_ROOT1:[grep.lib]atexit.c;1
+   13   #endif
+   14     return 0;
+************
+
+src_root1:[grep.lib]strtoumax.c is different from
+SRC_ROOT:[grep.lib]strtoumax.c
+;1
+
+LION> diff src_root:[grep.lib]strtoumax.c src_root1:
+************
+File SRC_ROOT:[grep.lib]strtoumax.c;1
+    2   #include "strtoimax.c"
+******
+File SRC_ROOT1:[grep.lib]strtoumax.c;1
+    2   #ifdef VMS
+    3   #include <stdint.h>
+    4   #endif
+    5   #include "strtoimax.c"
+************
+
+src_root1:[grep.lib]xstrtol.h is different from SRC_ROOT:[grep.lib]xstrtol.h;1
+
+LION> diff src_root:[grep.lib]xstrtol.h src_root1:
+************
+File SRC_ROOT:[grep.lib]xstrtol.h;1
+   24
+******
+File SRC_ROOT1:[grep.lib]xstrtol.h;1
+   24   #ifdef VMS
+   25   #include <config.h>
+   26   #include <stdint.h>
+   27   #endif
+   28
+************
+
+src_root1:[grep.src]dfa.c is different from SRC_ROOT:[grep.src]dfa.c;1
+
+LION> diff src_root:[grep.src]dfa.c src_root1:
+************
+File SRC_ROOT:[grep.src]dfa.c;1
+   33
+******
+File SRC_ROOT1:[grep.src]dfa.c;1
+   33   #ifdef VMS
+   34   #include <c-ctype.h>
+   35   #endif
+   36
+************
+************
+File SRC_ROOT:[grep.src]dfa.c;1
+ 3125   #endif /* MBS_SUPPORT */
+ 3126
+******
+File SRC_ROOT1:[grep.src]dfa.c;1
+ 3128
+************
+************
+File SRC_ROOT:[grep.src]dfa.c;1
+ 3174   /* Search through a buffer looking for a match to the given struct dfa.
+******
+File SRC_ROOT1:[grep.src]dfa.c;1
+ 3176   #endif /* MBS_SUPPORT */
+ 3177
+ 3178   /* Search through a buffer looking for a match to the given struct dfa.
+************
+
+
+src_root1:[grep.src]main.c is different from SRC_ROOT:[grep.src]main.c;1
+
+************
+File SRC_ROOT:[grep.src]main.c;1
+   52   #define SEP_CHAR_SELECTED ':'
+******
+File SRC_ROOT1:[grep.src]main.c;1
+   52   #ifdef VMS
+   53   #include <stdint.h>
+   54   #endif
+   55
+   56   #define SEP_CHAR_SELECTED ':'
+************
+

@@ -1,0 +1,16 @@
+SYSTEM
+	SOURCE                  OpenVMS
+
+FILE
+	BEST_TRY_CONTIGUOUS     no
+	CLUSTER_SIZE            16
+	CONTIGUOUS              no
+	EXTENSION               0
+	ORGANIZATION            sequential
+	PROTECTION              (system:RWD, owner:RWD, group:RD, world:RD)
+
+RECORD
+	BLOCK_SPAN              yes
+	CARRIAGE_CONTROL        carriage_return
+	FORMAT                  stream_lf
+	SIZE                    0
