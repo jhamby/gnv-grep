@@ -23,8 +23,8 @@ $ endif
 $!
 $!
 $ call do_alias "grep" "[bin]"
-$ call do_alias "egrep" "[bin]"
-$ call do_alias "fgrep" "[bin]"
+$ call do_alias "grep" "[bin]" "egrep"
+$ call do_alias "grep" "[bin]" "fgrep"
 $!
 $ exit
 $!!

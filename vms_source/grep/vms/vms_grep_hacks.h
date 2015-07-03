@@ -223,6 +223,9 @@ int fstatat(int fd, char const *file, struct stat *st, int flag);
 /* Needed for openat-safer.c */
 int openat (int fd, char const *file, int flags, ...);
 
+void *
+mempcpy (void *dest, const void *src, size_t n);
+
 #ifdef __VAX
 /* #pragma message disable longdoublenyi */
 #define lstat stat

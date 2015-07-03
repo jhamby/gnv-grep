@@ -120,6 +120,22 @@ $   ref_root_dir = ref_root_dir - "[" - "]"
 $   ref_base_dir = ref_root_dir + "." + ref_base_dir
 $endif
 $!
+$if p1 .eqs. "BETA" .or. p1 .eqs. "TRUNK"
+$then
+$   wrk_base_dir = "grep"
+$   resultd = f$parse("vms_root:",,,,"NO_CONCEAL")
+$   resultd = resultd - "][" - "><" - ".;" - ".."
+$   resultd = f$edit(resultd, "LOWERCASE") - ".vms_source.''wrk_base_dir'"
+$   resultd_len = f$length(resultd) - 1
+$   delim = f$extract(resultd_len, 1, resultd)
+$   ref_base_dir = f$parse(resultd,,,"directory") - "[" - "]" - "<" - ">"
+$   resultd = resultd - delim + ".reference.''wrk_base_dir'"
+$   ref_base_dir = ref_base_dir - delim + ".reference.''wrk_base_dir'"
+$   ref_base_dir = f$edit(ref_base_dir, "LOWERCASE")
+$   wrk = "''p1'_root:[''wrk_base_dir'"
+$   ref = resultd
+$endif
+$!
 $if p1 .eqs. "SRCBCK"
 $then
 $   ref_base_dir = "grep"

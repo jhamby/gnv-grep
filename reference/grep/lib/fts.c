@@ -1293,6 +1293,7 @@ fts_build (register FTS *sp, int type)
         int dir_fd;
         FTSENT *cur = sp->fts_cur;
         bool continue_readdir = !!cur->fts_dirp;
+        size_t max_entries;
 
         /* When cur->fts_dirp is non-NULL, that means we should
            continue calling readdir on that existing DIR* pointer
@@ -1354,8 +1355,7 @@ fts_build (register FTS *sp, int type)
            function.  But when no such function is specified, we can read
            entries in batches that are large enough to help us with inode-
            sorting, yet not so large that we risk exhausting memory.  */
-        size_t max_entries = (sp->fts_compar == NULL
-                              ? FTS_MAX_READDIR_ENTRIES : SIZE_MAX);
+        max_entries = sp->fts_compar ? SIZE_MAX : FTS_MAX_READDIR_ENTRIES;
 
         /*
          * Nlinks is the number of possible entries of type directory in the
@@ -1447,19 +1447,21 @@ fts_build (register FTS *sp, int type)
         nitems = 0;
         while (cur->fts_dirp) {
                 bool is_dir;
+                size_t d_namelen;
                 struct dirent *dp = readdir(cur->fts_dirp);
                 if (dp == NULL)
                         break;
                 if (!ISSET(FTS_SEEDOT) && ISDOT(dp->d_name))
                         continue;
 
-                if ((p = fts_alloc (sp, dp->d_name,
-                                    _D_EXACT_NAMLEN (dp))) == NULL)
+                d_namelen = _D_EXACT_NAMLEN (dp);
+                p = fts_alloc (sp, dp->d_name, d_namelen);
+                if (!p)
                         goto mem1;
-                if (_D_EXACT_NAMLEN (dp) >= maxlen) {
+                if (d_namelen >= maxlen) {
                         /* include space for NUL */
                         oldaddr = sp->fts_path;
-                        if (! fts_palloc(sp, _D_EXACT_NAMLEN (dp) + len + 1)) {
+                        if (! fts_palloc(sp, d_namelen + len + 1)) {
                                 /*
                                  * No more memory.  Save
                                  * errno, free up the current structure and the
@@ -1483,7 +1485,7 @@ mem1:                           saved_errno = errno;
                         maxlen = sp->fts_pathlen - len;
                 }
 
-                new_len = len + _D_EXACT_NAMLEN (dp);
+                new_len = len + d_namelen;
                 if (new_len < len) {
                         /*
                          * In the unlikely event that we would end up

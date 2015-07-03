@@ -54,8 +54,8 @@
 ![gnv.usr.share.man.man7]
 ![gnv.usr.share.man]man7.dir
 [gnv.bin]gnv$grep.exe
-[gnv.bin]gnv$egrep.exe
-[gnv.bin]gnv$fgrep.exe
+![gnv.bin]gnv$egrep.exe
+![gnv.bin]gnv$fgrep.exe
 [gnv.vms_bin]remove_old_grep.com
 [gnv.vms_bin]grep_alias_setup.com
 [gnv.usr.share.doc.grep]ABOUT-NLS.

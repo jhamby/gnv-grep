@@ -137,8 +137,8 @@ regex_internal_h = [.lib]regex_internal.h [.lib.glthread]lock.h \
 system_h = [.src]system.h [.lib]binary-io.h [.lib]minmax.h \
 	[.lib]same-inode.h [.lib]unlocked-io.h [.lib]configmake.h
 
-search_h = [.src]search.h [.src]mbsupport.h $(system_h) [.lib]error.h \
-	[.src]grep.h $(kwset_h) [.lib]xalloc.h [.lib]stdint.h
+search_h = [.src]search.h  $(system_h) [.lib]error.h \
+	[.src]grep.h [.src]dfa.h $(kwset_h) [.lib]xalloc.h [.lib]stdint.h
 
 unistd__h = [.lib]unistd--.h [.lib]unistd-safer.h
 
@@ -158,6 +158,7 @@ libgrep_objects = "quickset"=[.src]kwset.obj, \
 		"pcresearch"=[.src]pcresearch.obj
 
 gnulib_objects = "argmatch"=[.lib]argmatch.obj,\
+		"basename-lgpl"=[.lib]basename-lgpl.obj,\
 		"c-ctype"=[.lib]c-ctype.obj,\
 		"c-strcasecmp"=[.lib]c-strcasecmp.obj,\
 		"chdir-long"=[.lib]chdir-long.obj,\
@@ -185,6 +186,8 @@ gnulib_objects = "argmatch"=[.lib]argmatch.obj,\
 		"mbscasecmp"=[.lib]mbscasecmp.obj,\
 		"mbslen"=[.lib]mbslen.obj,\
 		"mbsstr"=[.lib]mbsstr.obj,\
+		"memchr2"=[.lib]memchr2.obj,\
+		"mempcpy"=[.lib]mempcpy.obj,\
 		"memrchr"=[.lib]memrchr.obj,\
 		"obstack"=[.lib]obstack.obj,\
 		"openat"=[.lib]openat.obj,\
@@ -198,6 +201,7 @@ gnulib_objects = "argmatch"=[.lib]argmatch.obj,\
 		"safe-read"=[.lib]safe-read.obj,\
 		"save-cwd"=[.lib]save-cwd.obj,\
 		"striconv"=[.lib]striconv.obj,\
+		"stripslash"=[.lib]stripslash.obj,\
 		"strnlen1"=[.lib]strnlen1.obj,\
 		"strtoimax"=[.lib]strtoimax.obj,\
 		"trim"=[.lib]trim.obj,\
@@ -213,43 +217,17 @@ gnulib_objects = "argmatch"=[.lib]argmatch.obj,\
 
 all : programs manpages
 
-programs : gnv$grep.exe grep_debug.exe \
-		gnv$egrep.exe egrep_debug.exe \
-		gnv$fgrep.exe fgrep_debug.exe
+programs : gnv$grep.exe grep_debug.exe
 
-gnv$grep.exe : [.src]grep.obj [.src]main.obj [.src]libgrep.olb \
+gnv$grep.exe : [.src]grep.obj [.src]libgrep.olb \
 		[.lib]gnulib.olb vms_crtl_init.obj
-	link/exe=$(MMS$TARGET) [.src]main.obj, [.src]grep.obj, \
+	link/exe=$(MMS$TARGET) [.src]grep.obj, \
 		sys$disk:[.src]libgrep.olb/lib, \
 		sys$disk:[.lib]gnulib.olb/lib, sys$disk:[]vms_crtl_init.obj
 
-grep_debug.exe : [.src]grep.obj [.src]main.obj [.src]libgrep.olb \
+grep_debug.exe : [.src]grep.obj [.src]libgrep.olb \
 		[.lib]gnulib.olb  vms_crtl_init.obj
-	link/debug/exe=$(MMS$TARGET) [.src]main.obj, [.src]grep.obj, \
-		sys$disk:[.src]libgrep.olb/lib, \
-		sys$disk:[.lib]gnulib.olb/lib, sys$disk:[]vms_crtl_init.obj
-
-gnv$egrep.exe : [.src]egrep.obj [.src]main.obj [.src]libgrep.olb \
-		[.lib]gnulib.olb vms_crtl_init.obj
-	link/exe=$(MMS$TARGET) [.src]main.obj, [.src]egrep.obj, \
-		sys$disk:[.src]libgrep.olb/lib, \
-		sys$disk:[.lib]gnulib.olb/lib, sys$disk:[]vms_crtl_init.obj
-
-egrep_debug.exe : [.src]egrep.obj [.src]main.obj [.src]libgrep.olb \
-		[.lib]gnulib.olb vms_crtl_init.obj
-	link/debug/exe=$(MMS$TARGET) [.src]main.obj, [.src]egrep.obj, \
-		sys$disk:[.src]libgrep.olb/lib, \
-		sys$disk:[.lib]gnulib.olb/lib, sys$disk:[]vms_crtl_init.obj
-
-gnv$fgrep.exe : [.src]fgrep.obj [.src]main.obj [.src]libgrep.olb \
-		[.lib]gnulib.olb vms_crtl_init.obj
-	link/exe=$(MMS$TARGET) [.src]main.obj, [.src]fgrep.obj, \
-		sys$disk:[.src]libgrep.olb/lib, \
-		sys$disk:[.lib]gnulib.olb/lib, sys$disk:[]vms_crtl_init.obj
-
-fgrep_debug.exe : [.src]fgrep.obj [.src]main.obj [.src]libgrep.olb \
-		[.lib]gnulib.olb vms_crtl_init.obj
-	link/debug/exe=$(MMS$TARGET) [.src]main.obj, [.src]fgrep.obj, \
+	link/debug/exe=$(MMS$TARGET) [.src]grep.obj, \
 		sys$disk:[.src]libgrep.olb/lib, \
 		sys$disk:[.lib]gnulib.olb/lib, sys$disk:[]vms_crtl_init.obj
 
@@ -294,19 +272,7 @@ stdint_in_h = [.lib]stdint^.in.h
     $(EVE) $(UNIX_2_VMS) $(MMS$SOURCE)/OUT=$(MMS$TARGET)\
 	    /init='f$element(1, ",", "$(MMS$SOURCE_LIST)")'
 
-[.src]grep.obj : [.src]grep.c $(config_h) $(search_h)
-
-[.src]egrep.obj : [.src]egrep.c $(config_h) $(search_h)
-
-[.src]fgrep.obj : [.src]fgrep.c $(config_h) $(search_h)
-
-[.src]main.obj : [.src]main.c [.src]mbsupport.h $(system_h) $(argmatch_h) \
-		[.lib]c-ctype.h [.lib]closeout.h [.lib]colorize.h \
-		[.lib]error.h [.lib]exclude.h [.lib]exitfail.h \
-		[.lib]fcntl-safer.h $(fts__h) [.lib]getopt.h [.src]grep.h \
-		[.lib]intprops.h [.lib]progname.h [.lib]propername.h \
-		[.lib]quote.h [.lib]safe-read.h [.lib]version-etc.h \
-		[.lib]xalloc.h [.lib]xstrtol.h [.vms]vms_main_wrapper.c
+[.src]grep.obj : [.src]grep.c $(config_h) $(search_h) [.lib]getopt.h
    $!define/user selinux sys$disk:[.lib.selinux]
    $define/user decc$user_include sys$disk:[],sys$disk:[.lib],\
 	sys$disk:[.src],sys$disk:[.tests]
@@ -314,8 +280,26 @@ stdint_in_h = [.lib]stdint^.in.h
 	sys$disk:[.src],sys$disk:[.vms],sys$disk:[.build-aux.snippet]
    $(CC)$(CFLAGS_MAIN)/OBJ=$(MMS$TARGET) $(MMS$SOURCE)
 
+#[.src]egrep.obj : [.src]egrep.c $(config_h) $(search_h)
+
+#[.src]fgrep.obj : [.src]fgrep.c $(config_h) $(search_h)
+
+#[.src]main.obj : [.src]main.c [.src]mbsupport.h $(system_h) $(argmatch_h) \
+#		[.lib]c-ctype.h [.lib]closeout.h [.lib]colorize.h \
+#		[.lib]error.h [.lib]exclude.h [.lib]exitfail.h \
+#		[.lib]fcntl-safer.h $(fts__h) [.lib]getopt.h [.src]grep.h \
+#		[.lib]intprops.h [.lib]progname.h [.lib]propername.h \
+#		[.lib]quote.h [.lib]safe-read.h [.lib]version-etc.h \
+#		[.lib]xalloc.h [.lib]xstrtol.h [.vms]vms_main_wrapper.c
+#   $!define/user selinux sys$disk:[.lib.selinux]
+#   $define/user decc$user_include sys$disk:[],sys$disk:[.lib],\
+#	sys$disk:[.src],sys$disk:[.tests]
+#   $define/user decc$system_include sys$disk:[],sys$disk:[.lib],\
+#	sys$disk:[.src],sys$disk:[.vms],sys$disk:[.build-aux.snippet]
+#   $(CC)$(CFLAGS_MAIN)/OBJ=$(MMS$TARGET) $(MMS$SOURCE)
+
 [.src]dfa.obj : [.src]dfa.c $(config_h) [.src]dfa.h [.lib]gettext.h \
-		[.src]mbsupport.h $(xalloc_h)
+		$(xalloc_h)
 
 [.src]dfasearch.obj : [.src]dfasearch.c $(config_h) [.lib]intprops.h \
 		$(search_h) [.src]dfa.h
@@ -337,6 +321,8 @@ vms_crtl_init.obj : [.vms]vms_crtl_init.c
 [.lib]argmatch.obj : [.lib]argmatch.c $(config_h) $(argmatch_h) \
 	[.lib]gettext.h [.lib]error.h [.lib]quotearg.h [.lib]quote.h \
 	[.lib]unlocked-io.h [.lib]exitfail.h
+
+[.lib]basename-lgpl.obj : [.lib]basename-lgpl.c $(config_h) $(dirname_h)
 
 [.lib]c-ctype.obj : [.lib]c-ctype.c $(config_h) [.lib]c-ctype.h
 
@@ -412,6 +398,10 @@ vms_crtl_init.obj : [.vms]vms_crtl_init.c
 [.lib]mbsstr.obj : [.lib]mbsstr.c $(config_h) $(malloca_h) \
 	[.lib]mbuiter.h [.lib]str-kmp.h
 
+[.lib]memchr2.obj : [.lib]memchr2.c $(config_h) [.lib]memchr2.h
+
+[.lib]mempcpy.obj : [.lib]mempcpy.c $(config_h)
+
 [.lib]memrchr.obj : [.lib]memrchr.c $(config_h)
 
 [.lib]obstack.obj : [.lib]obstack.c $(config_h) [.lib]obstack.h \
@@ -426,7 +416,7 @@ vms_crtl_init.obj : [.vms]vms_crtl_init.c
 [.lib]openat-safer.obj : [.lib]openat-safer.c $(config_h) \
 	[.lib]fcntl-safer.h [.lib]unistd-safer.h
 
-[.lib]progname.obj : [.lib]progname.c [.lib]progname.h
+[.lib]progname.obj : [.vms]vms_progname.c [.lib]progname.h
 
 [.lib]propername.obj : [.lib]propername.c $(config_h) \
 	[.lib]propername.h [.lib]trim.h [.lib]mbchar.h [.lib]mbuiter.h \
@@ -450,6 +440,8 @@ vms_crtl_init.obj : [.vms]vms_crtl_init.c
 
 [.lib]striconv.obj : [.lib]striconv.c $(config_h) [.lib]striconv.h \
 	[.lib]c-strcase.h
+
+[.lib]stripslash.obj : [.lib]stripslash.c $(config_h) $(dirname_h)
 
 [.lib]strnlen1.obj : [.lib]strnlen1.c $(config_h) [.lib]strnlen1.h
 
