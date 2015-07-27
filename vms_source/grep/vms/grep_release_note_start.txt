@@ -137,7 +137,21 @@ fixes the issues.
 
 This kit is designed to be used with the GNV Bash 4.2.45 or later kit.
 
-Fixes and enhancements:
+Fixes and enhancements to grep 2.21
+
+* A heap corruption bug due to incorrect buffer sizes was found.
+
+* Improved support for deep directories.  While the OpenVMS CRTL does not
+  currently fully support deep directories, this port attempts to work
+  around the issue.
+
+* Fix for properly handling when PSX$ROOT has not been set.  PSX$ROOT is
+  no longer required.
+
+* This kit should be able to be installed on VMS Software Inc. releases of
+  OpenVMS.
+
+Fixes and enhancements to grep 2.16.
 
 * No logical names required for proper Grep operations other than GNV$GNU
   for locating the simulated "/".

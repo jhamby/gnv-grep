@@ -59,7 +59,9 @@
 #endif
 
 #include "vms_lstat_hack.h"
-#define getcwd decc$getcwd
+#include "vms_getcwd_hack.h"
+char * vms_to_unix(const char * vms_spec);
+
 #include <errno.h>
 #include <stropts.h>
 #include "vms_terminal_io.h"
@@ -251,9 +253,9 @@ struct vms_info_st {
 	struct termios * term_attr;	/* Unix terminal attributes */
 	struct term_char_st *vms_char;  /* VMS terminal characteristics */
 	struct term_mode_iosb_st * vms_iosb; /* IOSB from sense mode */
-	char * cwd;			/* Current working directory */
+	char * vmscwd;			/* VMS format Current Working Dir */
 	char * path;			/* Path dirfd simulation */
-	DIR * dirptr;			/* Path for dirfd simulation */
+	DIR * dirptr;			/* Pointer for dirfd simulation */
 	unsigned long vms_crtl;		/* VMS CRTL stuff */
 					/* Add info for signals here */
 	struct stat *st_buf;		/* Stat buffer for directories */
@@ -317,8 +319,8 @@ int vms_open(const char *file_spec, int flags, ...) {
             if (fd_result >= 0) {
                 struct vms_info_st * info;
                 info = vms_lookup_fd(fd_result);
-                /* Needed for fchdir to restore */
-                info->cwd = getcwd(NULL, 4097);
+                /* Need to store cwd in VMS format for deep filenames */
+                info->vmscwd = decc_getcwd(NULL, 4097, 1);
                 info->path = strdup(file_spec);
                 info->st_buf = malloc(sizeof (struct stat));
                 if (info->st_buf != NULL) {
@@ -360,7 +362,7 @@ DIR * vms_opendir(const char * name) {
         i = pathlen - 4;
         cmp = strcasecmp(".dir", &name[i]);
         if (cmp == 0) {
-        newpath = malloc(pathlen + 2);
+        newpath = malloc(pathlen + 3);
             strcpy(newpath, name);
             strcat(newpath, "/.");
             dirptr = decc$opendir(newpath);
@@ -376,15 +378,20 @@ DIR * vms_opendir(const char * name) {
 /* Fake an opendir */
 DIR * vms_fdopendir(int fd) {
     struct vms_info_st * info;
-    char * saved_cwd;
     info = vms_lookup_fd(fd);
     char dir_path[4097];
     dir_path[0] = 0;
     if (info->path != NULL) {
         if (info->path[0] != '/') {
-            if (info->cwd != NULL) {
-                strcpy(dir_path, info->cwd);
-                strcat(dir_path, "/");
+            if (info->vmscwd != NULL) {
+                int len;
+                char * unix_path;
+                unix_path = vms_to_unix(info->vmscwd);
+                strcpy(dir_path, unix_path);
+                free(unix_path);
+                len = strlen(dir_path);
+                if (dir_path[len -1] != '/')
+                    strcat(dir_path, "/");
             }
         }
         if (!((info->path[0] == '.') && info->path[1] == 0)) {
@@ -397,13 +404,47 @@ DIR * vms_fdopendir(int fd) {
     return NULL;
 }
 
+int vmsmode_chdir(const char * newdir) {
+    int result;
+    int file_ux_only_mode;
+#if (__CRTL_VER >= 80300000)
+    int pcp_mode;
+    /* Save the PCP mode */
+    pcp_mode = decc$feature_get("DECC$POSIX_COMPLIANT_PATHNAMES",
+                                __FEATURE_MODE_CURVAL);
+    if (pcp_mode > 0) {
+        decc$feature_set("DECC$POSIX_COMPLIANT_PATHNAMES",
+                         __FEATURE_MODE_CURVAL, 0);
+    }
+#endif
+    file_ux_only_mode = decc$feature_get("DECC$FILENAME_UNIX_ONLY",
+                                         __FEATURE_MODE_CURVAL);
+    if (file_ux_only_mode > 0) {
+        decc$feature_set("DECC$FILENAME_UNIX_ONLY",
+                         __FEATURE_MODE_CURVAL, 0);
+    }
+    result = chdir(newdir);
+    if (file_ux_only_mode > 0) {
+        decc$feature_set("DECC$FILENAME_UNIX_ONLY",
+                         __FEATURE_MODE_CURVAL, file_ux_only_mode);
+    }
+#if (__CRTL_VER >= 80300000)
+    if (pcp_mode > 0) {
+        decc$feature_set("DECC$POSIX_COMPLIANT_PATHNAMES",
+                         __FEATURE_MODE_CURVAL, pcp_mode);
+    }
+#endif
+    return result;
+}
+
 /* Need a fchdir */
 int vms_fchdir(int fd) {
     struct vms_info_st * info;
     info = vms_lookup_fd(fd);
     /* First need to go to saved wd */
-    if (info->cwd != NULL) {
-        chdir(info->cwd);
+    if (info->vmscwd != NULL) {
+        int err;
+        err = vmsmode_chdir(info->vmscwd);
     }
     /* Then to the desired directory */
     if (info->path != NULL) {
@@ -412,8 +453,8 @@ int vms_fchdir(int fd) {
             err = chdir(info->path);
             if (err == 0) {
                 /* Need to replace the saved path */
-                free(info->cwd);
-                info->cwd = getcwd(NULL, 4097);
+                free(info->vmscwd);
+                info->vmscwd = decc_getcwd(NULL, 4097, 1);
                 free(info->path);
                 info->path = strdup(".");
             }
@@ -433,9 +474,9 @@ int vms_close(int fd) {
     int result;
     struct vms_info_st * info;
     info = vms_lookup_fd(fd);
-    if (info->cwd != NULL) {
-        free(info->cwd);
-        info->cwd = NULL;
+    if (info->vmscwd != NULL) {
+        free(info->vmscwd);
+        info->vmscwd = NULL;
     }
     if (info->path != NULL) {
         free(info->path);
@@ -464,8 +505,8 @@ int vms_dup(int fd1) {
     }
     info1 = vms_lookup_fd(fd1);
     info2 = vms_lookup_fd(fd2);
-    if (info1->cwd != NULL) {
-        info2->cwd = strdup(info1->cwd);
+    if (info1->vmscwd != NULL) {
+        info2->vmscwd = strdup(info1->vmscwd);
     }
     if (info1->path != NULL) {
         info2->path = strdup(info1->path);
@@ -491,8 +532,8 @@ int vms_dup2(int fd1, int fd2) {
     if (fd2 < 0) {
         return fd2;
     }
-    if (info1->cwd != NULL) {
-        info2->cwd = strdup(info1->cwd);
+    if (info1->vmscwd != NULL) {
+        info2->vmscwd = strdup(info1->vmscwd);
     }
     if (info1->path != NULL) {
         info2->path = strdup(info1->path);

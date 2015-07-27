@@ -211,6 +211,7 @@ gnulib_objects = "argmatch"=[.lib]argmatch.obj,\
 		"xalloc-die"=[.lib]xalloc-die.obj, \
 		"xstriconv"=[.lib]xstriconv.obj,\
 		"xtrtoimax"=[.lib]xstrtoimax.obj,\
+		"vms_fname_to_unix"=[.lib]vms_fname_to_unix.obj,\
 		"vms_terminal_io"=[.lib]vms_terminal_io.obj,\
 		"vms_term"=[.lib]vms_term.obj
 
@@ -463,6 +464,8 @@ vms_crtl_init.obj : [.vms]vms_crtl_init.c
 	[.lib]striconv.h [.lib]xalloc.h
 
 [.lib]xstrtoimax.obj : [.lib]xstrtoimax.c $(xstrtol_c)
+
+[.lib]vms_fname_to_unix.obj : [.vms]vms_fname_to_unix.c
 
 [.lib]vms_term.obj : [.vms]vms_term.c [.vms]vms_term.h
 
