@@ -201,6 +201,19 @@
 #define PRIoMAX "llo"
 #define PRIxMAX "llx"
 
+#define FLEXIBLE_ARRAY_MEMBER 1
+
+/* From stddef.in.h */
+#  define _GL_STDDEF_ALIGNAS(type) /* */
+typedef union
+{
+  char *__p _GL_STDDEF_ALIGNAS (char *);
+  double __d _GL_STDDEF_ALIGNAS (double);
+  long double __ld _GL_STDDEF_ALIGNAS (long double);
+  long int __i _GL_STDDEF_ALIGNAS (long int);
+} max_align_t;
+
+
 #include <types.h>
 void * memrchr (void const *s, int c_in, size_t n);
 size_t mbslen (const char *string);

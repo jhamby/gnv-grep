@@ -255,6 +255,9 @@ config_vms.h : [.vms]generate_config_vms_h_grep.com
 [.lib]fnmatch.h : [.lib]fnmatch.in.h
 	type/noheader $(MMS$SOURCE) /output=sys$disk:$(MMS$TARGET)
 
+[.lib]stdalign.h : [.lib]stdalign.in.h
+	type/noheader $(MMS$SOURCE) /output=sys$disk:$(MMS$TARGET)
+
 .ifdef __VAX__
 getopt_in_h = [.lib]getopt.in$5nh
 .else
@@ -366,7 +369,7 @@ vms_crtl_init.obj : [.vms]vms_crtl_init.c
 
 [.lib]fstatat.obj : [.lib]fstatat.c $(config_h) $(at_func_c)
 
-[.lib]fts.obj : [.lib]fts.c $(config_h) [.lib]fts_.h \
+[.lib]fts.obj : [.lib]fts.c $(config_h) [.lib]fts_.h [.lib]stdalign.h \
 	$(fcntl___h) $(dirent___h) $(unistd___h) \
 	[.lib]cloexec.h [.lib]openat.h [.lib]same-inode.h \
 	$(fts_cycle_c) [.vms]vms_pwd_hack.h
