@@ -407,12 +407,6 @@ $!
 $flst_loop_end:
 $ close flst
 $!
-$!   Add Link alias procedure file (N/A for grep on 64 bit VMS)
-$!   Needed for VAX because of shorter command line lenghts.
-$!------------------------------------------------------------
-$ write pdsc "   file ""[vms_bin]grep_alias_setup.com"""
-$ write pdsc "     source [vms_bin]grep_alias_setup.com ;"
-$!
 $!   Add [.SYS$STARTUP]grep_startup file
 $!---------------------------------------
 $ write pdsc "   file ""[sys$startup]gnv$grep_startup.com"""
