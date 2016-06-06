@@ -1,5 +1,5 @@
 # Customize maint.mk                           -*- makefile -*-
-# Copyright (C) 2009-2015 Free Software Foundation, Inc.
+# Copyright (C) 2009-2016 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ export VERBOSE = yes
 # 1127556 9e
 export XZ_OPT = -6e
 
-old_NEWS_hash = 1b194dba492bc6e90c4446daef4b7782
+old_NEWS_hash = 7225c806189eaa7ffd4c744e3248d0a5
 
 # Many m4 macros names once began with 'jm_'.
 # Make sure that none are inadvertently reintroduced.
@@ -120,9 +120,22 @@ sc_THANKS_in_duplicates:
 	    && { echo '$(ME): remove the above names from THANKS.in'	\
 		  1>&2; exit 1; } || :
 
+# Ensure that tests don't use `cmd ... && fail=1` as that hides crashes.
+# The "exclude" expression allows common idioms like `test ... && fail=1`
+# and the 2>... portion allows commands that redirect stderr and so probably
+# independently check its contents and thus detect any crash messages.
+sc_prohibit_and_fail_1:
+	@prohibit='&& fail=1'						\
+	exclude='(stat|kill|test |EGREP|grep|compare|2> *[^/])'		\
+	halt='&& fail=1 detected. Please use: returns_ 1 ... || fail=1'	\
+	in_vc_files='^tests/'						\
+	  $(_sc_search_regexp)
+
 update-copyright-env = \
   UPDATE_COPYRIGHT_USE_INTERVALS=1 \
   UPDATE_COPYRIGHT_MAX_LINE_LENGTH=79
+
+include $(abs_top_srcdir)/dist-check.mk
 
 exclude_file_name_regexp--sc_bindtextdomain = \
   ^tests/(get-mb-cur-max|dfa-match-aux)\.c$$

@@ -87,7 +87,8 @@ as an extended regular expression (ERE, see below).
 .BR \-F ", " \-\^\-fixed\-strings
 Interpret
 .I PATTERN
-as a list of fixed strings, separated by newlines,
+as a list of fixed strings (instead of regular expressions),
+separated by newlines,
 any of which is to be matched.
 .TP
 .BR \-G ", " \-\^\-basic\-regexp
@@ -97,9 +98,7 @@ as a basic regular expression (BRE, see below).
 This is the default.
 .TP
 .BR \-P ", " \-\^\-perl\-regexp
-Interpret
-.I PATTERN
-as a Perl regular expression.
+Interpret the pattern as a Perl-compatible regular expression (PCRE).
 This is highly experimental and
 .B "grep \-P"
 may warn of unimplemented features.
@@ -109,14 +108,20 @@ may warn of unimplemented features.
 Use
 .I PATTERN
 as the pattern.
-This can be used to specify multiple search patterns,
-or to protect a pattern beginning with a hyphen
-.RB ( \- ).
+If this option is used multiple times or is combined with the
+.B \-f
+.RB ( \-\-file )
+option, search for all patterns given.
+This option can be used to protect a pattern beginning with \*(lq\-\*(rq.
 .TP
 .BI \-f " FILE" "\fR,\fP \-\^\-file=" FILE
 Obtain patterns from
 .IR FILE ,
 one per line.
+If this option is used multiple times or is combined with the
+.B \-e
+.RB ( \-\-regexp )
+option, search for all patterns given.
 The empty file contains zero patterns, and therefore matches nothing.
 .TP
 .BR \-i ", " \-\^\-ignore\-case
@@ -138,6 +143,11 @@ Word-constituent characters are letters, digits, and the underscore.
 .TP
 .BR \-x ", " \-\^\-line\-regexp
 Select only those matches that exactly match the whole line.
+For a regular expression pattern, this is like parenthesizing the
+pattern and then surrounding it with
+.B ^
+and
+.BR $ .
 .TP
 .B \-y
 Obsolete synonym for
@@ -531,16 +541,17 @@ expressions, by using various operators to combine smaller expressions.
 .PP
 .B grep
 understands three different versions of regular expression syntax:
-\*(lqbasic,\*(rq \*(lqextended\*(rq and \*(lqperl.\*(rq In
+\*(lqbasic\*(rq (BRE), \*(lqextended\*(rq (ERE) and \*(lqperl\*(rq (PCRE).
+In
 .RB "\s-1GNU\s0\ " grep ,
 there is no difference in available functionality between basic and
 extended syntaxes.
 In other implementations, basic regular expressions are less powerful.
 The following description applies to extended regular expressions;
 differences for basic regular expressions are summarized afterwards.
-Perl regular expressions give additional functionality, and are
-documented in pcresyntax(3) and pcrepattern(3), but may not be
-available on every system.
+Perl-compatible regular expressions give additional functionality, and are
+documented in pcresyntax(3) and pcrepattern(3), but work only if
+PCRE is available in the system.
 .PP
 The fundamental building blocks are the regular expressions
 that match a single character.
@@ -1067,7 +1078,7 @@ is used and a line is selected, the exit status is 0 even if an error
 occurred.
 .
 .SH COPYRIGHT
-Copyright 1998-2000, 2002, 2005-2015 Free Software Foundation, Inc.
+Copyright 1998-2000, 2002, 2005-2016 Free Software Foundation, Inc.
 .PP
 This is free software;
 see the source for copying conditions.

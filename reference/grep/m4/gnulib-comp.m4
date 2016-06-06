@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2015 Free Software Foundation, Inc.
+# Copyright (C) 2002-2016 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -159,6 +159,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module gnumakefile:
   # Code from module gnupload:
   # Code from module gperf:
+  # Code from module hard-locale:
   # Code from module hash:
   # Code from module hash-pjw:
   # Code from module hash-tests:
@@ -363,7 +364,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module unsetenv:
   # Code from module unsetenv-tests:
   # Code from module update-copyright:
-  # Code from module update-copyright-tests:
   # Code from module useless-if-before-free:
   # Code from module vasnprintf:
   # Code from module vasnprintf-tests:
@@ -450,7 +450,8 @@ AC_DEFUN([gl_INIT],
   gl_DIRENT_SAFER
   gl_MODULE_INDICATOR([dirent-safer])
   gl_FUNC_DIRFD
-  if test $ac_cv_func_dirfd = no && test $gl_cv_func_dirfd_macro = no; then
+  if test $ac_cv_func_dirfd = no && test $gl_cv_func_dirfd_macro = no \
+     || test $REPLACE_DIRFD = 1; then
     AC_LIBOBJ([dirfd])
     gl_PREREQ_DIRFD
   fi
@@ -575,6 +576,7 @@ AC_DEFUN([gl_INIT],
           m4_defn([m4_PACKAGE_VERSION])), [1], [],
         [AC_CONFIG_LINKS([$GNUmakefile:$GNUmakefile], [],
           [GNUmakefile=$GNUmakefile])])
+  gl_HARD_LOCALE
   gl_I_RING
   AM_ICONV
   m4_ifdef([gl_ICONV_MODULE_INDICATOR],
@@ -712,11 +714,11 @@ AC_DEFUN([gl_INIT],
   fi
   gl_STRING_MODULE_INDICATOR([memrchr])
   gl_MINMAX
-  gl_MSVC_INVAL
+  AC_REQUIRE([gl_MSVC_INVAL])
   if test $HAVE_MSVC_INVALID_PARAMETER_HANDLER = 1; then
     AC_LIBOBJ([msvc-inval])
   fi
-  gl_MSVC_NOTHROW
+  AC_REQUIRE([gl_MSVC_NOTHROW])
   if test $HAVE_MSVC_INVALID_PARAMETER_HANDLER = 1; then
     AC_LIBOBJ([msvc-nothrow])
   fi
@@ -1060,8 +1062,6 @@ changequote([, ])dnl
     gl_PREREQ_UNSETENV
   fi
   gl_STDLIB_MODULE_INDICATOR([unsetenv])
-  abs_aux_dir=`cd "$ac_aux_dir"; pwd`
-  AC_SUBST([abs_aux_dir])
   gl_FUNC_VASNPRINTF
   abs_aux_dir=`cd "$ac_aux_dir"; pwd`
   AC_SUBST([abs_aux_dir])
@@ -1272,6 +1272,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/glthread/lock.c
   lib/glthread/lock.h
   lib/glthread/threadlib.c
+  lib/hard-locale.c
+  lib/hard-locale.h
   lib/hash.c
   lib/hash.h
   lib/i-ring.c
@@ -1495,6 +1497,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/gettimeofday.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
+  m4/hard-locale.m4
   m4/i-ring.m4
   m4/iconv.m4
   m4/iconv_h.m4
@@ -1764,7 +1767,6 @@ AC_DEFUN([gl_FILE_LIST], [
   tests/test-time.c
   tests/test-unistd.c
   tests/test-unsetenv.c
-  tests/test-update-copyright.sh
   tests/test-vasnprintf.c
   tests/test-vc-list-files-cvs.sh
   tests/test-vc-list-files-git.sh

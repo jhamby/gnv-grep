@@ -1,5 +1,5 @@
 ## Process this file with automake to create Makefile.in
-# Copyright 1997-1998, 2005-2015 Free Software Foundation, Inc.
+# Copyright 1997-1998, 2005-2016 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ TESTS =						\
   big-match					\
   bogus-wctob					\
   bre						\
+  c-locale					\
   case-fold-backref				\
   case-fold-backslash-w				\
   case-fold-char-class				\
@@ -70,6 +71,7 @@ TESTS =						\
   empty						\
   empty-line					\
   empty-line-mb					\
+  encoding-error				\
   epipe						\
   equiv-classes					\
   ere						\
@@ -105,7 +107,9 @@ TESTS =						\
   pcre						\
   pcre-abort					\
   pcre-context					\
+  pcre-count					\
   pcre-infloop					\
+  pcre-invalid-utf8-infloop			\
   pcre-invalid-utf8-input			\
   pcre-jitstack					\
   pcre-o					\
@@ -130,6 +134,7 @@ TESTS =						\
   turkish-I-without-dot				\
   turkish-eyes					\
   two-files					\
+  unibyte-binary				\
   unibyte-bracket-expr				\
   unibyte-negated-circumflex			\
   utf8-bracket					\
@@ -137,7 +142,9 @@ TESTS =						\
   word-delim-multibyte				\
   word-multi-file				\
   word-multibyte				\
-  yesno
+  write-error-msg				\
+  yesno						\
+  z-anchor-newline
 
 EXTRA_DIST =					\
   $(TESTS)					\
@@ -176,6 +183,14 @@ TESTS_ENVIRONMENT =				\
       done;						\
     };							\
   fi;							\
+							\
+  : 'Test egrep/fgrep help if they use our grep.';	\
+  grep=`echo grep | sed -e '$(transform)'` || exit;	\
+  if test "$$grep" = grep; then				\
+    built_programs='grep egrep fgrep';			\
+  else							\
+    built_programs='grep';				\
+  fi;							\
 						\
   export_with_values				\
   VERSION='$(VERSION)'				\
@@ -187,7 +202,7 @@ TESTS_ENVIRONMENT =				\
   abs_top_builddir='$(abs_top_builddir)'	\
   abs_top_srcdir='$(abs_top_srcdir)'		\
   abs_srcdir='$(abs_srcdir)'			\
-  built_programs='grep egrep fgrep'		\
+  built_programs="$$built_programs"		\
   srcdir='$(srcdir)'				\
   top_srcdir='$(top_srcdir)'			\
   CC='$(CC)'					\

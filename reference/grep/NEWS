@@ -1,5 +1,90 @@
 GNU grep NEWS                                    -*- outline -*-
 
+* Noteworthy changes in release 2.25 (2016-04-21) [stable]
+
+** Bug fixes
+
+  In the C or POSIX locale, grep now treats all bytes as valid
+  characters even if the C runtime library says otherwise.  The
+  revised behavior is more compatible with the original intent of
+  POSIX, and the next release of POSIX will likely make this official.
+  [bug introduced in grep-2.23]
+
+  grep -Pz no longer mistakenly diagnoses patterns like [^a] that use
+  negated character classes. [bug introduced in grep-2.24]
+
+  grep -oz now uses null bytes, not newlines, to terminate output lines.
+  [bug introduced in grep-2.5]
+
+** Improvements
+
+  grep now outputs details more consistently when reporting a write error.
+  E.g., "grep: write error: No space left on device" rather than just
+  "grep: write error".
+
+
+* Noteworthy changes in release 2.24 (2016-03-10) [stable]
+
+** Bug fixes
+
+  grep -z would match strings it should not.  To trigger the bug, you'd
+  have to use a regular expression including an anchor (^ or $) and a
+  feature like a range or a backreference, causing grep to forego its DFA
+  matcher and resort to using re_search.  With a multibyte locale, that
+  matcher could mistakenly match a string containing a newline.
+  For example, this command:
+    printf 'a\nb\0' | LC_ALL=en_US.utf-8 grep -z '^[a-b]*b'
+  would mistakenly match and print all four input bytes.  After the fix,
+  there is no match, as expected.
+  [bug introduced in grep-2.7]
+
+  grep -Pz now diagnoses attempts to use patterns containing ^ and $,
+  instead of mishandling these patterns.  This problem seems to be
+  inherent to the PCRE API; removing this limitation is on PCRE's
+  maint/README wish list.  Patterns can continue to match literal ^
+  and $ by escaping them with \ (now needed even inside [...]).
+  [bug introduced in grep-2.5]
+
+
+* Noteworthy changes in release 2.23 (2016-02-04) [stable]
+
+** Bug fixes
+
+  Binary files are now less likely to generate diagnostics and more
+  likely to yield text matches.  grep now reports "Binary file FOO
+  matches" and suppresses further output instead of outputting a line
+  containing an encoding error; hence grep can now report matching text
+  before a later binary match.  Formerly, grep reported FOO to be
+  binary when it found an encoding error in FOO before generating
+  output for FOO, which meant it never reported both matching text and
+  matching binary data; this was less useful for searching text
+  containing encoding errors in non-matching lines.
+  [bug introduced in grep-2.21]
+
+  grep -c no longer stops counting when finding binary data.
+  [bug introduced in grep-2.21]
+
+  grep no longer outputs encoding errors in unibyte locales.
+  For example, if the byte '\x81' is not a valid character in a
+  unibyte locale, grep treats the byte as binary data.
+  [bug introduced in grep-2.21]
+
+  grep -oP is no longer susceptible to an infinite loop when processing
+  invalid UTF8 just before a match.
+  [bug introduced in grep-2.22]
+
+  --exclude and related options are now matched against trailing
+  parts of command-line arguments, not against the entire arguments.
+  This partly reverts the --exclude-related change in 2.22.
+  [bug introduced in grep-2.22]
+
+  --line-buffer is no longer ineffective when combined with -l.
+  [bug introduced in grep-2.5]
+
+  -xw is now equivalent to -x more consistently, with -P and with backrefs.
+  [bug only partially fixed in grep-2.19]
+
+
 * Noteworthy changes in release 2.22 (2015-11-01) [stable]
 
 ** Improvements
@@ -885,7 +970,7 @@ necessary to track the evolution of the regex package, and since
 I was changing it anyway I decided to do a general cleanup.
 
 ========================================================================
-Copyright (C) 1992, 1997-2002, 2004-2015 Free Software Foundation, Inc.
+Copyright (C) 1992, 1997-2002, 2004-2016 Free Software Foundation, Inc.
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright

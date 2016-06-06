@@ -1,7 +1,7 @@
 #! /bin/sh
-# Ensure that with -P, \s matches a newline.
+# Simple PCRE tests.
 #
-# Copyright (C) 2001, 2006, 2009-2015 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2006, 2009-2016 Free Software Foundation, Inc.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,6 +13,8 @@ require_pcre_
 fail=0
 
 echo | grep -P '\s*$' || fail=1
-echo | grep -zP '\s$' || fail=1
+echo | returns_ 2 grep -zP '\s$' || fail=1
+echo '.ab' | returns_ 1 grep -Pwx ab || fail=1
+echo x | grep -Pz '[^a]' || fail=1
 
 Exit $fail

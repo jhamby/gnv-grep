@@ -1,6 +1,6 @@
 # Process this file with automake to create Makefile.in
 #
-# Copyright 1997-1998, 2005-2015 Free Software Foundation, Inc.
+# Copyright 1997-1998, 2005-2016 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ SUBDIRS = po lib doc src tests gnulib-tests
 EXTRA_DIST =		\
   .mailmap		\
   ChangeLog-2009	\
+  dist-check.mk		\
   README		\
   README-alpha		\
   THANKS.in		\
@@ -29,10 +30,12 @@ EXTRA_DIST =		\
   cfg.mk		\
   thanks-gen
 
-# Shortcut target to make it easier to run expensive tests.
+# Shortcut targets to make it easier to run expensive tests.
 .PHONY: check-expensive
 check-expensive:
 	$(MAKE) check RUN_EXPENSIVE_TESTS=yes
+.PHONY: check-very-expensive
+check-very-expensive: check-expensive
 
 # Run syntax-check rules before creating a distribution tarball.
 .PHONY: run-syntax-check
@@ -70,12 +73,12 @@ THANKS: THANKS.in Makefile.am .mailmap thanks-gen
 	$(AM_V_GEN)rm -f $@-t $@;					\
 	{								\
 	  $(prologue); echo;						\
-	  { perl -ne '/^$$/.../^$$/ and print' $(srcdir)/THANKS.in	\
-	      | grep -v '^$$' | perl -pe 's/  +/\0/';			\
+	  { perl -ne '/^$$/.../^$$/ and !/^$$/ and s/  +/\0/ and print'	\
+	      $(srcdir)/THANKS.in;					\
 	    git log --pretty=format:'%aN%x00%aE'			\
 	      | $(ASSORT) -u;						\
 	  } | $(srcdir)/thanks-gen					\
-	    | LC_ALL=en_US.UTF-8 sort -f;				\
+	    | LC_ALL=en_US.UTF-8 sort -k1,1;				\
 	  echo;								\
 	  printf ';; %s\n' 'Local Variables:' 'coding: utf-8' End:;	\
 	} > $@-t && chmod a-w $@-t && mv $@-t $@
