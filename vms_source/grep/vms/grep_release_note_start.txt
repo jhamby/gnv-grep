@@ -137,6 +137,16 @@ fixes the issues.
 
 This kit is designed to be used with the GNV Bash 4.2.45 or later kit.
 
+Fixes and enhancements to grep 2.25
+
+* The VMS CRTL lstat() function is having issues with symbolic links
+  and non-existant files.  This appears to show up as internal corruption
+  of the CRTL that results in Access Violations, and system unwind
+  messages.  The code has been modified to try to detect such conditions
+  and prevent them.  There are still instances of the system unwind
+  messages seen when running make check for diffutils.
+  https://sourceforge.net/p/gnv/bugs/110/
+
 Fixes and enhancements to grep 2.21
 
 * A heap corruption bug due to incorrect buffer sizes was found.
